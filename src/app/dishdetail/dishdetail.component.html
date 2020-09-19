@@ -8,7 +8,7 @@
 
   
 
-   <div fxFlex="20"  *ngIf="dish">
+   <div  *ngIf="dish">
     <mat-card class = "First">
       <mat-card-header>
         <mat-card-title>
@@ -27,4 +27,26 @@
     </mat-card>
   </div>
 
+   <div fxFlex="50">
+  	<div fxFlex *ngIf="dish">
+  		<mat-list fxFlex>
+  			<h2 matLine>Comments</h2>
+  		<mat-list-item *ngFor="let a of dish.comments">
+  		<mat-list fxFlex>
+  			<mat-list-item>
+  				<hr>
+  				<h5 matLine>{{a.comment}}</h5>
+  				<p matLine>{{a.rating}} stars</p>
+  				<hr>
+  				<p matLine>--{{a.author}}<span>{{a.date | date }}</span></p>
+  				<hr>
+  			</mat-list-item>
+  		</mat-list>
+  		</mat-list-item>
+  		</mat-list>
+  	</div>
+   </div> 
+
 </div>
+
+
