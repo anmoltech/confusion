@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dish } from '../shared/dish';
 import { DishService } from '../services/dish.service';
-
+import { Comment} from '../shared/comment';
 import { Params, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { switchMap } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-dishdetail',
@@ -13,15 +15,44 @@ import { switchMap } from 'rxjs/operators';
 })
 
 export class DishdetailComponent implements OnInit {
+  @ViewChild('test') feedbackForm2Directive;
+  feedbackForm2: FormGroup;
+  comment: Comment;
+  
 
+  formErrors = {
+    'Author': '',
+    'comment': '',
+    
+  };
+   validationMessages = {
+    'Author': {
+      'required':      'author Name is required.',
+      'minlength':     'the author name must be at least 2 characters long.',
+    },
+    'comment': {
+      'required':      'comment is required.',
+    },
+
+  };
   dish: Dish;
   dishIds: string[];
   prev: string;
   next: string;
+  formatLabel(value: number) {
+    if (value >= 1000) {
+      return Math.round(value / 1000) + 'k';
+    }
+
+    return value;
+  }
+
 
   constructor(private dishservice: DishService,
     private route: ActivatedRoute,
-    private location: Location) { }
+    private location: Location,
+    private fb: FormBuilder) { this.createForm(); 
+    }
 
   ngOnInit() {
     let id = this.route.snapshot.params['id'];
@@ -31,14 +62,66 @@ export class DishdetailComponent implements OnInit {
       
   }
 
-  goBack(): void {
-    this.location.back();
-  }
+ 
 
-  setPrevNext(dishId: string) {
+  createForm() {
+     this.feedbackForm2 = this.fb.group({
+      Author: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(25)] ],
+      
+      comment: ['', [Validators.required] ],
+      rating: 5
+    });
+
+    this.feedbackForm2.valueChanges
+      .subscribe(data => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+  onValueChanged(data?: any) {
+    if (!this.feedbackForm2) { return; }
+    const form = this.feedbackForm2;
+    for (const field in this.formErrors) {
+      if (this.formErrors.hasOwnProperty(field)) {
+        // clear previous error message (if any)
+        this.formErrors[field] = '';
+        const control = form.get(field);
+        if (control && control.dirty && !control.valid) {
+          const messages = this.validationMessages[field];
+          for (const key in control.errors) {
+            if (control.errors.hasOwnProperty(key)) {
+              this.formErrors[field] += messages[key] + ' ';
+            }
+          }
+        }
+      }
+    }
+  }
+  onSubmit() {
+  var dateobj = new Date();
+  var B = dateobj.toISOString();
+  this.comment = this.feedbackForm2.value;
+  this.comment.date=B;
+
+
+  this.dish.comments.push(this.comment);
+  console.log(this.comment);
+  this.feedbackForm2.reset({
+    author: '',
+    rating : 5,
+    comment: '',
+  });
+  this.feedbackForm2Directive.resetForm();
+
+}
+setPrevNext(dishId: string) {
     const index = this.dishIds.indexOf(dishId);
     this.prev = this.dishIds[(this.dishIds.length + index - 1) % this.dishIds.length];
     this.next = this.dishIds[(this.dishIds.length + index + 1) % this.dishIds.length];
   }
+  goBack(): void {
+    this.location.back();
+  }
+
 
 }
+
