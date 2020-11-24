@@ -18,6 +18,7 @@ export class DishdetailComponent implements OnInit {
   @ViewChild('test') feedbackForm2Directive;
   feedbackForm2: FormGroup;
   comment: Comment;
+  dishcopy: Dish;
   
 
   formErrors = {
@@ -62,9 +63,10 @@ export class DishdetailComponent implements OnInit {
     this.dishservice.getDishIds()
      .subscribe(dishIds => this.dishIds = dishIds);
        
-    this.route.params.pipe(switchMap((params: Params) => this.dishservice.getDish(params['id'])))
-    .subscribe(dish => { this.dish = dish; this.setPrevNext(dish.id); },
-      errmess => this.errMess = <any>errmess);
+    this.route.params
+      .pipe(switchMap((params: Params) => this.dishservice.getDish(params['id'])))
+      .subscribe(dish => { this.dish = dish; this.dishcopy = dish; this.setPrevNext(dish.id); },
+        errmess => this.errMess = <any>errmess );
 
 
   }
@@ -110,7 +112,11 @@ export class DishdetailComponent implements OnInit {
   this.comment.date=B;
 
 
-  this.dish.comments.push(this.comment);
+  this.dishcopy.comments.push(this.comment);
+  this.dishservice.putDish(this.dishcopy)
+      .subscribe(dish => {
+        this.dish = dish; this.dishcopy = dish;
+      },)
   console.log(this.comment);
   this.feedbackForm2.reset({
     author: '',
